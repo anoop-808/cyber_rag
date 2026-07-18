@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+
+# Virtual Environment
+.venv/
+
+# Environment Variables
+.env
+
+# IDE
+.vscode/
+.idea/
+
+# Python
+.pytest_cache/
+.mypy_cache/
+
+# macOS
+.DS_Store
+
+# Linux
+*~
+
+# Logs
+*.log
+
+# ChromaDB
+storage/vectorstore/
+
+# Cache
+storage/cache/
+
+# Build
+build/
+dist/
