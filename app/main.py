@@ -1,10 +1,19 @@
 """FastAPI application entry point for CyberRAG."""
 
 from fastapi import FastAPI
+from contextlib import asynccontextmanager
 
 from app.api.routes import router
+from app.core.db import initialize_database
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Initialize database on startup
+    initialize_database()
+    yield
 
 app = FastAPI(
+    lifespan=lifespan,
     title="CyberRAG API",
     description="AI-powered Retrieval-Augmented Generation API for Cybersecurity Knowledge Retrieval",
     version="1.0.0",
