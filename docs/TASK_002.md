@@ -1,55 +1,74 @@
-# TASK 002 - SQLite FTS5 Search Engine
+# TASK 002 - SQLite Full Text Search (FTS5)
 
 ## Objective
 
-Implement a fast offline keyword search system using SQLite FTS5.
+Implement a fast offline keyword search engine using SQLite FTS5.
 
----
+SQLite remains the source of truth.
 
 ## Scope
 
 Implement:
 
 - FTS5 virtual table
-- Index builder
+- Index creation
+- Index refresh command
 - Search service
-- BM25 ranking
-- Keyword search API
+- Search API
 
-Support filters:
+Support searching by:
 
-- Severity
+- CVE ID
+- Description
 - Vendor
 - Product
+- Severity
 - CWE
 
----
+## API
+
+Create:
+
+GET /search
+
+Query parameters:
+
+- q
+- severity
+- vendor
+- product
+- cwe
+- limit
+
+Return JSON.
+
+## Ranking
+
+Use SQLite BM25 ranking.
+
+Sort by relevance.
+
+## Requirements
+
+- Parameterized SQL
+- Type hints
+- Logging
+- Unit tests
+- Docstrings
 
 ## Out of Scope
 
 Do NOT implement:
 
-- Gemini
-- Ollama
 - ChromaDB
 - Semantic search
+- Gemini
+- Ollama
 - Frontend
-
----
-
-## Requirements
-
-- FastAPI endpoint
-- Parameter validation
-- SQL parameterization
-- Unit tests
-- Logging
-
----
 
 ## Definition of Done
 
 - Search returns ranked CVEs
 - Filters work
 - Tests pass
-- Documentation updated
+- API documented
