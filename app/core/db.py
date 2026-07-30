@@ -37,27 +37,3 @@ def initialize_database() -> None:
         with schema_path.open("r", encoding="utf-8") as f:
             conn.executescript(f.read())
         conn.commit()
-
-    # Rebuild FTS index on init
-    rebuild_fts_index()
-
-
-def rebuild_fts_index() -> None:
-    """Rebuild the FTS5 search index from existing tables."""
-    with get_db_connection() as conn:
-        conn.execute("DELETE FROM cves_fts;")
-        conn.execute("""
-            INSERT INTO cves_fts (id, description, severity, cwe_id, vendor, product)
-            SELECT
-                c.id,
-                c.description,
-                c.severity,
-                c.cwe_id,
-                GROUP_CONCAT(cp.vendor, ' '),
-                GROUP_CONCAT(cp.product, ' ')
-            FROM cves c
-            LEFT JOIN cve_cpes cc ON c.id = cc.cve_id
-            LEFT JOIN cpes cp ON cc.cpe_id = cp.id
-            GROUP BY c.id
-        """)
-        conn.commit()

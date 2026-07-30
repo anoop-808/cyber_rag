@@ -42,13 +42,3 @@ CREATE TABLE IF NOT EXISTS cve_cpes (
     FOREIGN KEY (cve_id) REFERENCES cves (id) ON DELETE CASCADE,
     FOREIGN KEY (cpe_id) REFERENCES cpes (id) ON DELETE CASCADE
 );
-
--- FTS5 Virtual Table for Search
-CREATE VIRTUAL TABLE IF NOT EXISTS cves_fts USING fts5(
-    id,
-    description,
-    severity,
-    cwe_id,
-    vendor,
-    product
-);

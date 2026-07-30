@@ -35,5 +35,3 @@ storage/cache/
 # Build
 build/
 dist/
-storage/database.sqlite
-storage/datasets/processed/processed_cves.json
