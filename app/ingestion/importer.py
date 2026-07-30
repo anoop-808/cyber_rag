@@ -4,7 +4,7 @@ import json
 import logging
 from typing import Any
 
-from app.core.db import get_db_connection
+from app.core.db import get_db_connection, rebuild_fts_index
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +29,12 @@ def import_cve_data(cve_records: list[dict[str, Any]]) -> None:
                 logger.error(f"Failed to import CVE {cve.get('id', 'UNKNOWN')}: {e}")
 
         conn.commit()
+
+    # Rebuild FTS index after importing data
+    try:
+        rebuild_fts_index()
+    except Exception as e:
+        logger.error(f"Failed to rebuild FTS index: {e}")
 
 
 def _insert_single_cve(cursor: Any, cve: dict[str, Any]) -> None:
