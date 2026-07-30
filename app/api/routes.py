@@ -6,6 +6,8 @@ from pydantic import BaseModel, Field
 
 from app.core.rag import answer_question
 from app.search.sqlite_search import search_cves_fts
+from app.retrieval.cve_detail import get_cve_by_id
+from fastapi import Path
 
 
 class QuestionRequest(BaseModel):
@@ -95,3 +97,31 @@ def search_cves_endpoint(
         }
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.get("/cve/{cve_id}")
+def get_cve_endpoint(
+    cve_id: str = Path(..., description="The ID of the CVE to retrieve.")
+) -> dict[str, Any]:
+    """Retrieve details for a specific CVE by ID.
+
+    Parameters
+    ----------
+    cve_id : str
+        The CVE ID (e.g., CVE-2024-1234).
+
+    Returns
+    -------
+    dict
+        Full details of the requested CVE.
+
+    Raises
+    ------
+    HTTPException
+        If the CVE is not found (status code 404).
+    """
+    cve_data = get_cve_by_id(cve_id)
+    if not cve_data:
+        raise HTTPException(status_code=404, detail=f"CVE {cve_id} not found")
+
+    return cve_data
