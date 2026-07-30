@@ -35,3 +35,4 @@ storage/cache/
 # Build
 build/
 dist/
+storage/database.sqlite
