@@ -2,7 +2,9 @@
 
 from sentence_transformers import SentenceTransformer
 
-MODEL_NAME = "all-MiniLM-L6-v2"
+from app.core.config import config
+
+MODEL_NAME = config.EMBEDDING_MODEL
 
 _embedding_model = SentenceTransformer(MODEL_NAME)
 
