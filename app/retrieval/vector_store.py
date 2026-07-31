@@ -35,6 +35,7 @@ def get_vector_store() -> Collection:
         client = chromadb.PersistentClient(path=str(vector_db_path))
         _vector_collection = client.get_or_create_collection(
             name=COLLECTION_NAME,
+            embedding_function=None,
         )
 
     return _vector_collection
