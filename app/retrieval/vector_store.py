@@ -5,7 +5,9 @@ from pathlib import Path
 import chromadb
 from chromadb.api.models.Collection import Collection
 
-VECTOR_DB_PATH = "storage/vectorstore"
+from app.core.config import config
+
+VECTOR_DB_PATH = config.VECTOR_DB_PATH
 COLLECTION_NAME = "cyberrag_cves"
 
 _vector_collection: Collection | None = None

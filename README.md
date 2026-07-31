@@ -138,6 +138,25 @@ streamlit run app/ui/app.py
 
 ---
 
+## 🧠 Embeddings & Vector Index
+
+The semantic retrieval system depends on pre-calculated vector embeddings of the CVE dataset.
+
+**How embeddings are generated:**
+Embeddings are generated using the `SentenceTransformer` model defined in the configuration (default: `all-MiniLM-L6-v2`). The generation pipeline extracts the `id` and `description` of each CVE from the SQLite database, combines them, generates semantic embeddings locally on CPU, and stores them in ChromaDB.
+
+**Where embeddings are stored:**
+The embeddings and metadata are stored persistently by ChromaDB in the configured directory, which defaults to `storage/vectorstore`.
+
+**How to rebuild the vector index:**
+If the database of CVEs is updated, you can rebuild the vector index by running the embedding pipeline script independently from the project root:
+
+```bash
+PYTHONPATH=. python app/retrieval/pipeline.py
+```
+
+---
+
 ## 📈 Project Roadmap
 
 - ✅ Environment Setup
