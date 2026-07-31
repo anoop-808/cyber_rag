@@ -14,11 +14,13 @@ function SearchBar({ onSearch, initialQuery = '' }) {
         <form className="search-bar" onSubmit={handleSubmit}>
             <input
                 type="text"
+                className="search-input"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search vulnerabilities........"
+                placeholder="Search vulnerabilities..."
+                aria-label="Search vulnerabilities"
             />
-            <button type="submit">Search</button>
+            <button type="submit" className="search-button">Search</button>
         </form>
     );
 }

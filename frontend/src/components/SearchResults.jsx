@@ -6,7 +6,12 @@ function SearchResults({ results, loading, error, hasSearched, onCveClick }) {
     if (error) return <div className="error">{error}</div>;
 
     if (hasSearched && results.length === 0) {
-        return <div className="no-results">No results found.</div>;
+        return (
+            <div className="no-results-state">
+                <h3>No matching CVEs found</h3>
+                <p>Please try a different search term or check for typos.</p>
+            </div>
+        );
     }
 
     return (
