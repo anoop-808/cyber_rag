@@ -1,22 +1,24 @@
-"""Embedding model loader for CyberRAG retrieval."""
+"""Embedding model initialization and management."""
 
 from sentence_transformers import SentenceTransformer
 
-MODEL_NAME = "all-MiniLM-L6-v2"
+from app.core.config import config
 
-_embedding_model = SentenceTransformer(MODEL_NAME)
+MODEL_NAME = config.EMBEDDING_MODEL
 
+_embedding_model: SentenceTransformer | None = None
 
 def get_embedding_model() -> SentenceTransformer:
-    """Return the shared SentenceTransformer embedding model.
-
-    The model is loaded once when this module is imported and reused
-    across CyberRAG retrieval components.
+    """Initialize and return the sentence transformer model lazily.
 
     Returns
     -------
     SentenceTransformer
-        The preloaded sentence embedding model configured with
-        ``MODEL_NAME``.
+        The loaded sentence transformer model.
     """
+    global _embedding_model
+
+    if _embedding_model is None:
+        _embedding_model = SentenceTransformer(MODEL_NAME)
+
     return _embedding_model
