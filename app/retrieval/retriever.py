@@ -3,6 +3,7 @@
 from typing import Any
 
 from app.retrieval.search import search_cves
+from app.retrieval.reranker import rerank_results
 
 
 def retrieve_context(query: str, top_k: int = 5) -> dict[str, Any]:
@@ -30,9 +31,10 @@ def retrieve_context(query: str, top_k: int = 5) -> dict[str, Any]:
         raise ValueError("Query must not be empty or contain only whitespace.")
 
     results = search_cves(query, top_k=top_k)
+    refined_results = rerank_results(results, top_k=top_k)
 
     return {
         "query": query,
-        "results": results,
-        "count": len(results),
+        "results": refined_results,
+        "count": len(refined_results),
     }
