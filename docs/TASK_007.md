@@ -1,246 +1,294 @@
 # TASK_007.md
 
-# TASK 007: Embedding Pipeline & Vector Store Foundation
+# Phase 6B – BM25 Retrieval Engine
 
-## Objective
+## Status
 
-Implement the embedding generation pipeline and vector store foundation for CyberRAG. This phase prepares the application for semantic retrieval by generating embeddings for the CVE database and storing them in a searchable vector index.
+Planned
 
-This task is **strictly backend-only**.
+---
 
-The frontend, API responses, and user interface must remain unchanged.
+# Objective
+
+Implement a lexical retrieval engine using the BM25 ranking algorithm to enable keyword-based searching over the CyberRAG CVE database.
+
+This task establishes the first retrieval component of the Hybrid Retrieval system that will later combine lexical retrieval with semantic vector search.
 
 ---
 
 # Background
 
-The current CyberRAG search relies entirely on SQLite Full-Text Search (FTS).
+Phase 6A introduced semantic retrieval through SentenceTransformer embeddings and ChromaDB.
 
-While fast, keyword search cannot understand semantic meaning.
+While semantic search performs well for conceptual similarity, it can miss exact technical terms such as:
 
-Example:
+- CVE IDs
+- Product names
+- Vendor names
+- Attack technique names
+- Version numbers
+- Error codes
 
-Query:
+Lexical retrieval complements semantic retrieval by ranking documents according to keyword relevance.
 
-```
-Remote code execution vulnerabilities in OpenSSL
-```
+---
 
-may fail to retrieve relevant CVEs if those exact keywords are absent.
+# Problem Statement
 
-The next phase will introduce semantic retrieval.
+CyberRAG currently relies only on semantic embeddings.
 
-Before that can happen, every CVE must be converted into vector embeddings and indexed.
+Users searching for exact terminology should receive highly relevant matches even when semantic similarity is weak.
 
-This task builds only that foundation.
+A BM25 retrieval engine shall provide this capability.
 
 ---
 
 # Scope
 
-Implement:
+This task includes:
 
-- Embedding generation pipeline
-- Vector store initialization
-- Embedding persistence
-- Index creation
-- Configuration
-- Documentation
+- Build BM25 index
+- Load CVE documents
+- Tokenize searchable fields
+- Execute BM25 ranking
+- Return Top-K results
 
-Do NOT implement:
+---
 
-- Semantic search
+# Non Goals
+
+This task SHALL NOT include:
+
+- Hybrid retrieval
+- Score fusion
+- Metadata filtering
+- Reranking
 - LLM integration
-- RAG
-- Prompt engineering
+- API redesign
 - UI changes
-- API changes
-- New endpoints
 
----
-
-# Functional Requirements
-
-## 1. Embedding Model
-
-Select a sentence-transformer embedding model suitable for cybersecurity text.
-
-The model should:
-
-- run locally
-- support CPU inference
-- produce fixed-length embeddings
-- work offline after download
-
-Model choice should be configurable.
-
----
-
-## 2. Embedding Pipeline
-
-Implement a reusable pipeline that:
-
-Loads all CVEs from SQLite
-
-↓
-
-Extracts relevant searchable text
-
-↓
-
-Generates embeddings
-
-↓
-
-Stores embeddings
-
-The pipeline must be executable independently.
-
----
-
-## 3. Searchable Content
-
-Each embedding should include meaningful CVE context.
-
-At minimum:
-
-- CVE ID
-- Description
-
-Additional metadata may be included if appropriate.
-
----
-
-## 4. Vector Store
-
-Create the project's first vector database.
-
-Responsibilities:
-
-- initialize storage
-- save embeddings
-- load embeddings
-- support nearest-neighbor search in future phases
-
-This phase only requires storage.
-
-Searching will be implemented later.
-
----
-
-## 5. Configuration
-
-Configuration values should be centralized.
-
-Include:
-
-- embedding model name
-- vector storage location
-- embedding dimension (if needed)
-
-Avoid hard-coded values.
-
----
-
-## 6. Project Structure
-
-Introduce only the files necessary for embedding generation.
-
-Example structure:
-
-```
-app/
-    retrieval/
-        embeddings.py
-        vectorstore.py
-```
-
-Do not reorganize unrelated modules.
-
----
-
-## 7. Documentation
-
-Document:
-
-- how embeddings are generated
-- how to rebuild the vector index
-- where embeddings are stored
-
----
-
-# Acceptance Criteria
-
-The following must be true:
-
-✓ Embedding model loads successfully
-
-✓ All CVEs are processed
-
-✓ Embeddings are generated
-
-✓ Embeddings are stored
-
-✓ Vector store persists correctly
-
-✓ Rebuilding the index works
-
-✓ Existing backend tests continue to pass
-
-✓ Existing frontend remains unaffected
-
-✓ No API endpoints change
-
----
-
-# Out of Scope
-
-This task must NOT include:
-
-- Natural language search
-- Similarity search
-- LLM integration
-- AI-generated answers
-- Prompt templates
-- Chat interface
-- React modifications
-- Authentication
-- Filters
-- Pagination
-- Database schema redesign
-
----
-
-# Constraints
-
-- Keep implementation minimal.
-- Reuse the existing project architecture.
-- Do not modify unrelated modules.
-- Preserve existing functionality.
-- Avoid premature optimization.
-- No placeholder implementations.
-- No mock embeddings.
+Those belong to later tasks.
 
 ---
 
 # Deliverables
 
-- Embedding generation pipeline
-- Vector store implementation
-- Configuration updates
-- Documentation
-- Passing backend tests
+## BM25 Index
+
+Create an index over the processed CVE dataset.
+
+Searchable fields:
+
+- CVE ID
+- Title
+- Description
+- CWE
+- Vendor
+- Product
+
+---
+
+## BM25 Search
+
+Implement keyword search using BM25.
+
+Input:
+
+```text
+remote code execution
+```
+
+Output:
+
+```text
+Top K ranked CVEs
+```
+
+---
+
+## Configurable Parameters
+
+Support configurable:
+
+```python
+top_k
+
+```
+
+Future tuning parameters may be added later.
+
+---
+
+# Folder Changes
+
+New file:
+
+```
+app/retrieval/bm25.py
+```
+
+No additional folders.
+
+---
+
+# File Responsibilities
+
+## bm25.py
+
+Responsible for:
+
+- Loading searchable corpus
+- Building BM25 index
+- Performing keyword search
+- Returning ranked documents
+
+No vector search logic.
+
+---
+
+# Public Interface
+
+The module should expose a clean API similar to:
+
+```python
+search_bm25(
+    query: str,
+    top_k: int = 10
+)
+```
+
+Implementation details are left to the developer provided the interface remains stable.
+
+---
+
+# Data Source
+
+Use the existing processed CVE dataset created during previous phases.
+
+Do NOT duplicate datasets.
+
+Do NOT create a second database.
+
+---
+
+# Result Format
+
+Results should remain compatible with the retrieval pipeline.
+
+Each returned document should preserve existing metadata already used by CyberRAG.
+
+No schema changes.
+
+---
+
+# Logging
+
+Log:
+
+- Index creation
+- Corpus size
+- Query execution
+- Returned result count
+
+Do not log full document contents.
+
+---
+
+# Error Handling
+
+Gracefully handle:
+
+- Empty query
+- Missing dataset
+- Empty corpus
+- Invalid top_k
+
+Return meaningful exceptions.
+
+---
+
+# Performance Requirements
+
+Index creation should occur once.
+
+Repeated searches should reuse the existing index.
+
+Avoid rebuilding the BM25 index for every query.
+
+---
+
+# Tests
+
+Create unit tests covering:
+
+- Index creation
+- Empty corpus
+- Empty query
+- Single keyword search
+- Multi-keyword search
+- Top-K behavior
+- Deterministic ranking
+
+---
+
+# Acceptance Criteria
+
+The task is complete when:
+
+- BM25 index builds successfully.
+- Keyword search returns ranked CVEs.
+- Existing retrieval code remains functional.
+- Existing semantic search is unaffected.
+- All new tests pass.
+- Existing tests continue to pass.
+
+---
+
+# Constraints
+
+Follow existing CyberRAG architecture.
+
+Do not modify:
+
+- Embedding pipeline
+- Vector store
+- API routes
+- Database schema
+
+Keep changes isolated to lexical retrieval.
+
+---
+
+# Out of Scope
+
+The following belong to later tasks:
+
+- Hybrid search
+- Score fusion
+- Metadata filters
+- Re-ranking
+- RAG generation
 
 ---
 
 # Definition of Done
 
-The task is complete when:
+- BM25 retrieval implemented.
+- Code documented.
+- Unit tests passing.
+- Existing functionality preserved.
+- Ready for TASK_008.
 
-- embeddings can be generated for the complete CVE dataset
-- embeddings are stored successfully
-- the project builds without errors
-- all existing tests pass
-- no existing functionality regresses
+---
 
-Semantic retrieval will be implemented in the next task.
+# Dependencies
+
+Requires:
+
+- Phase 6A completed.
+- ChromaDB already operational.
+- Existing processed CVE dataset.
+
+Produces:
+
+A standalone BM25 retrieval engine to be consumed by TASK_008 Hybrid Retrieval.
