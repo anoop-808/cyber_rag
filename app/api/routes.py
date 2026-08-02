@@ -4,45 +4,54 @@ from typing import Any, Optional
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from app.core.rag import answer_question
 from app.search.sqlite_search import search_cves_fts
+from app.api.models import AskRequest, AskResponse
+from app.rag.pipeline import generate_answer
+import logging
+import time
+
 from app.retrieval.cve_detail import get_cve_detail
-
-
-class QuestionRequest(BaseModel):
-    """Request model for the /ask endpoint."""
-
-    query: str = Field(..., description="Natural-language question to answer.")
-    top_k: int = Field(5, description="Maximum number of CVEs to retrieve.")
+logger = logging.getLogger(__name__)
 
 
 router = APIRouter()
 
 
-@router.post("/ask")
-def ask_question(request: QuestionRequest) -> dict[str, Any]:
+@router.post("/ask", response_model=AskResponse)
+def ask_question(request: AskRequest) -> dict[str, Any]:
     """Answer a cybersecurity question using the RAG pipeline.
 
     Parameters
     ----------
-    request : QuestionRequest
-        Request containing the query and optional top_k parameter.
+    request : AskRequest
+        Request containing the query and optional filters.
 
     Returns
     -------
     dict
-        Response containing the original query, generated answer, sources,
-        and count of matches.
+        Response containing the generated answer, sources, and metadata.
 
     Raises
     ------
     HTTPException
-        If the query or top_k validation fails (status code 400).
+        If the query validation fails (status code 400) or an internal error occurs (status code 500).
     """
+    logger.info(f"Received /ask request. Query length: {len(request.query) if request.query else 0}")
+    start_time = time.time()
     try:
-        return answer_question(request.query, request.top_k)
+        response = generate_answer(query=request.query, filters=request.filters)
+        duration = time.time() - start_time
+        logger.info(f"Successfully processed /ask request in {duration:.2f}s")
+        return response
     except ValueError as exc:
+        logger.warning(f"Validation error in /ask: {exc}")
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        logger.error(f"Runtime error in /ask: {exc}")
+        raise HTTPException(status_code=500, detail="Internal Server Error") from exc
+    except Exception as exc:
+        logger.error(f"Unexpected error in /ask: {exc}")
+        raise HTTPException(status_code=500, detail="Internal Server Error") from exc
 
 @router.get("/cve/{cve_id}")
 def get_cve_endpoint(cve_id: str) -> dict[str, Any]:
