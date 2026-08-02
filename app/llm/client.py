@@ -1,194 +1,171 @@
-"""LLM client for CyberRAG using the OpenRouter Chat Completions API."""
+"""LLM Interface for CyberRAG."""
 
-import os
+import logging
+import time
 from typing import Any
 
-import requests
-from dotenv import load_dotenv
+import httpx
+from tenacity import (
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_exponential,
+    RetryCallState,
+    Retrying
+)
 
-OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
-REQUEST_TIMEOUT_SECONDS = 60
+from app.core.config import config
 
-SYSTEM_HEADER = "=== SYSTEM ==="
-USER_QUERY_HEADER = "=== USER QUERY ==="
-
-
-def _get_openrouter_config() -> tuple[str, str]:
-    """Load required OpenRouter configuration from environment variables.
-
-    Returns
-    -------
-    tuple of str
-        API key and model name.
-
-    Raises
-    ------
-    ValueError
-        If a required environment variable is missing or empty.
-    """
-    load_dotenv()
-
-    api_key = os.getenv("OPENROUTER_API_KEY")
-    if not api_key or not api_key.strip():
-        raise ValueError("OPENROUTER_API_KEY environment variable is not set.")
-
-    model = os.getenv("OPENROUTER_MODEL")
-    if not model or not model.strip():
-        raise ValueError("OPENROUTER_MODEL environment variable is not set.")
-
-    return api_key.strip(), model.strip()
+logger = logging.getLogger(__name__)
 
 
-def _extract_response_text(response_data: dict[str, Any]) -> str:
-    """Extract assistant response text from an OpenRouter API payload.
+class LLMError(Exception):
+    """Base exception for LLM-related errors."""
+
+
+class LLMConfigurationError(LLMError):
+    """Raised when LLM configuration is invalid."""
+
+
+class LLMTimeoutError(LLMError):
+    """Raised when an LLM request times out."""
+
+
+class LLMProviderError(LLMError):
+    """Raised when the LLM provider returns an error."""
+
+
+def _is_transient_error(exc: Exception) -> bool:
+    """Check if an exception is a transient error that should be retried."""
+    if isinstance(exc, httpx.TimeoutException):
+        return True
+    if isinstance(exc, httpx.HTTPStatusError):
+        # Retry on 5xx errors (server errors) or 429 (Too Many Requests)
+        return exc.response.status_code >= 500 or exc.response.status_code == 429
+    if isinstance(exc, httpx.NetworkError):
+        return True
+    return False
+
+
+def generate_response(system_prompt: str, user_prompt: str) -> str:
+    """Generate a response from the configured language model.
 
     Parameters
     ----------
-    response_data : dict
-        Parsed JSON response from the OpenRouter API.
+    system_prompt : str
+        The system prompt providing context and rules.
+    user_prompt : str
+        The user prompt containing the question and formatted context.
 
     Returns
     -------
     str
-        Generated response text from the model.
+        The raw response text from the language model.
 
     Raises
     ------
-    RuntimeError
-        If the response does not contain a valid assistant message.
+    LLMConfigurationError
+        If required configuration (like API key for OpenRouter) is missing.
+    LLMTimeoutError
+        If the request times out after all retries.
+    LLMProviderError
+        If the provider returns a non-transient error or invalid response.
+    LLMError
+        For other unexpected errors.
     """
-    if "error" in response_data:
-        error = response_data["error"]
-        if isinstance(error, dict):
-            message = error.get("message", error)
-        else:
-            message = error
-        raise RuntimeError(f"OpenRouter API error: {message}")
+    provider = config.LLM_PROVIDER.lower()
+    model = config.LLM_MODEL
+    base_url = config.LLM_BASE_URL.rstrip("/")
+    api_key = getattr(config, "OPENROUTER_API_KEY", None)
 
-    try:
-        message_content = response_data["choices"][0]["message"]["content"]
-    except (KeyError, IndexError, TypeError) as exc:
-        raise RuntimeError(
-            f"Unexpected OpenRouter API response format: {response_data}"
-        ) from exc
-
-    if message_content is None:
-        raise RuntimeError("OpenRouter API returned an empty assistant message.")
-
-    return str(message_content).strip()
-
-
-def _build_messages(prompt: str) -> list[dict[str, str]]:
-    """Build OpenRouter chat messages from a prompt string.
-
-    When CyberRAG section headers are present, split the prompt into separate
-    system and user messages. Otherwise, send the full prompt as one user
-    message.
-
-    Parameters
-    ----------
-    prompt : str
-        Prompt text to convert into chat messages.
-
-    Returns
-    -------
-    list of dict
-        Messages payload for the OpenRouter Chat Completions API.
-    """
-    stripped_prompt = prompt.strip()
-
-    if (
-        SYSTEM_HEADER not in stripped_prompt
-        or USER_QUERY_HEADER not in stripped_prompt
-    ):
-        return [{"role": "user", "content": stripped_prompt}]
-
-    system_index = stripped_prompt.index(SYSTEM_HEADER)
-    user_query_index = stripped_prompt.index(USER_QUERY_HEADER)
-
-    if system_index >= user_query_index:
-        return [{"role": "user", "content": stripped_prompt}]
-
-    system_start = system_index + len(SYSTEM_HEADER)
-    system_message = stripped_prompt[system_start:user_query_index].strip()
-    user_message = stripped_prompt[
-        user_query_index + len(USER_QUERY_HEADER):
-    ].strip()
-
-    return [
-        {"role": "system", "content": system_message},
-        {"role": "user", "content": user_message},
-    ]
-
-
-def generate_response(prompt: str) -> str:
-    """Send a prompt to the configured LLM and return the response text.
-
-    Parameters
-    ----------
-    prompt : str
-        Fully constructed prompt to send to the LLM.
-
-    Returns
-    -------
-    str
-        Generated response text from the LLM.
-
-    Raises
-    ------
-    ValueError
-        If ``prompt`` is empty or contains only whitespace, or if required
-        OpenRouter configuration is missing.
-    ConnectionError
-        If a network error occurs while contacting the OpenRouter API.
-    RuntimeError
-        If the OpenRouter API returns an unexpected or error response.
-    """
-    if not prompt or not prompt.strip():
-        raise ValueError("Prompt must not be empty or contain only whitespace.")
-
-    api_key, model = _get_openrouter_config()
+    if provider == "openrouter" and not api_key:
+        raise LLMConfigurationError("OPENROUTER_API_KEY is required for OpenRouter provider.")
 
     headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
     }
+
+    if provider == "openrouter":
+        headers["Authorization"] = f"Bearer {api_key}"
+        headers["HTTP-Referer"] = "https://github.com/cyberrag/cyberrag"
+        headers["X-Title"] = config.APP_NAME
+
+        # Adjust endpoint path if not already included in base_url
+        if not base_url.endswith("/chat/completions"):
+            endpoint = f"{base_url}/chat/completions"
+        else:
+            endpoint = base_url
+    else:
+        # Default OpenAI compatible endpoint
+        if not base_url.endswith("/chat/completions"):
+            endpoint = f"{base_url}/chat/completions"
+        else:
+            endpoint = base_url
+
     payload = {
         "model": model,
-        "messages": _build_messages(prompt),
+        "messages": [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_prompt}
+        ],
+        "temperature": config.LLM_TEMPERATURE,
+        "max_tokens": config.LLM_MAX_TOKENS,
     }
 
-    try:
-        response = requests.post(
-            OPENROUTER_API_URL,
-            headers=headers,
-            json=payload,
-            timeout=REQUEST_TIMEOUT_SECONDS,
-        )
-    except requests.RequestException as exc:
-        raise ConnectionError(
-            f"Failed to connect to OpenRouter API: {exc}"
-        ) from exc
+    logger.info(f"Starting LLM request to provider='{provider}', model='{model}'")
+    start_time = time.time()
+
+    def do_request() -> httpx.Response:
+        try:
+            with httpx.Client(timeout=config.LLM_TIMEOUT) as client:
+                response = client.post(endpoint, headers=headers, json=payload)
+                response.raise_for_status()
+                return response
+        except httpx.HTTPStatusError as e:
+            if not _is_transient_error(e):
+                raise LLMProviderError(f"Provider error {e.response.status_code}: {e.response.text}") from e
+            raise # Re-raise transient errors for retry
+        except httpx.RequestError as e:
+            if not _is_transient_error(e):
+                raise LLMProviderError(f"Request failed: {str(e)}") from e
+            raise
 
     try:
-        response_data = response.json()
-    except ValueError as exc:
-        raise RuntimeError(
-            f"OpenRouter API returned non-JSON response: {response.text}"
-        ) from exc
+        for attempt in Retrying(
+            stop=stop_after_attempt(config.LLM_MAX_RETRIES),
+            wait=wait_exponential(multiplier=1, min=2, max=10),
+            retry=retry_if_exception_type((httpx.TimeoutException, httpx.HTTPStatusError, httpx.NetworkError)),
+            reraise=True
+        ):
+            with attempt:
+                response = do_request()
 
-    if response.status_code != 200:
-        if isinstance(response_data, dict) and "error" in response_data:
-            error = response_data["error"]
-            if isinstance(error, dict):
-                message = error.get("message", error)
-            else:
-                message = error
-            raise RuntimeError(
-                f"OpenRouter API returned status {response.status_code}: {message}"
-            )
-        raise RuntimeError(
-            f"OpenRouter API returned status {response.status_code}: {response.text}"
-        )
+    except httpx.TimeoutException as e:
+        logger.error(f"LLM request timed out after {config.LLM_MAX_RETRIES} attempts.")
+        raise LLMTimeoutError(f"Request timed out after {config.LLM_MAX_RETRIES} attempts.") from e
+    except (httpx.HTTPStatusError, httpx.NetworkError) as e:
+        logger.error(f"LLM request failed after {config.LLM_MAX_RETRIES} attempts: {str(e)}")
+        raise LLMProviderError(f"Provider request failed: {str(e)}") from e
+    except LLMError:
+        raise
+    except Exception as e:
+        logger.error(f"Unexpected error during LLM request: {str(e)}")
+        raise LLMError(f"Unexpected error: {str(e)}") from e
 
-    return _extract_response_text(response_data)
+    duration = time.time() - start_time
+    logger.info(f"LLM request completed in {duration:.2f}s")
+
+    try:
+        data = response.json()
+        if not data:
+            raise ValueError("Empty response from provider")
+        if "choices" not in data or not data["choices"]:
+            raise ValueError("Invalid response format: missing 'choices'")
+
+        content = data["choices"][0]["message"]["content"]
+        if content is None:
+            return ""
+        return content
+    except Exception as e:
+        raise LLMProviderError(f"Failed to parse provider response: {str(e)}") from e
+
