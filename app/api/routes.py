@@ -5,8 +5,9 @@ from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from app.search.sqlite_search import search_cves_fts
-from app.api.models import AskRequest, AskResponse
+from app.api.models import AskRequest, AskResponse, SearchRequest, SearchResponse
 from app.rag.pipeline import generate_answer
+from app.retrieval.pipeline import retrieve
 import logging
 import time
 
@@ -76,6 +77,42 @@ def get_cve_endpoint(cve_id: str) -> dict[str, Any]:
     if cve_detail is None:
         raise HTTPException(status_code=404, detail="CVE not found")
     return cve_detail
+
+@router.post("/search", response_model=SearchResponse)
+def search_documents(request: SearchRequest) -> dict[str, Any]:
+    """Retrieve relevant CVE documents using the unified retrieval pipeline.
+
+    Parameters
+    ----------
+    request : SearchRequest
+        Request containing the query and optional filters.
+
+    Returns
+    -------
+    dict
+        Response containing the retrieved documents.
+
+    Raises
+    ------
+    HTTPException
+        If the query validation fails (status code 400) or an internal error occurs (status code 500).
+    """
+    logger.info(f"Received POST /search request. Query length: {len(request.query) if request.query else 0}")
+    start_time = time.time()
+    try:
+        documents = retrieve(query=request.query, filters=request.filters)
+        duration = time.time() - start_time
+        logger.info(f"Successfully processed POST /search request in {duration:.2f}s")
+        return {"documents": documents}
+    except ValueError as exc:
+        logger.warning(f"Validation error in POST /search: {exc}")
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        logger.error(f"Runtime error in POST /search: {exc}")
+        raise HTTPException(status_code=500, detail="Internal Server Error") from exc
+    except Exception as exc:
+        logger.error(f"Unexpected error in POST /search: {exc}")
+        raise HTTPException(status_code=500, detail="Internal Server Error") from exc
 
 @router.get("/search")
 def search_cves_endpoint(
