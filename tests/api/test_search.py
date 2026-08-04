@@ -9,7 +9,7 @@ client = TestClient(app)
 
 def test_search_success():
     """Test successful POST /search request."""
-    with patch("app.api.routes.retrieve") as mock_retrieve:
+    with patch("app.api.dependencies.retrieve") as mock_retrieve:
         mock_retrieve.return_value = [
             {"id": "CVE-2024-1234", "description": "Buffer overflow", "metadata": {"severity": "HIGH"}, "distance": 0.123}
         ]
@@ -48,7 +48,7 @@ def test_search_missing_query():
 
 def test_search_retrieval_failure():
     """Test POST /search when retrieval raises a ValueError."""
-    with patch("app.api.routes.retrieve") as mock_retrieve:
+    with patch("app.api.dependencies.retrieve") as mock_retrieve:
         mock_retrieve.side_effect = ValueError("Invalid filter value")
 
         response = client.post("/search", json={"query": "A valid query"})
@@ -58,7 +58,7 @@ def test_search_retrieval_failure():
 
 def test_search_internal_error():
     """Test POST /search when retrieval raises a RuntimeError."""
-    with patch("app.api.routes.retrieve") as mock_retrieve:
+    with patch("app.api.dependencies.retrieve") as mock_retrieve:
         mock_retrieve.side_effect = RuntimeError("Database connection failed")
 
         response = client.post("/search", json={"query": "What is xz?"})
@@ -68,7 +68,7 @@ def test_search_internal_error():
 
 def test_search_generic_error():
     """Test POST /search when retrieval raises a generic Exception."""
-    with patch("app.api.routes.retrieve") as mock_retrieve:
+    with patch("app.api.dependencies.retrieve") as mock_retrieve:
         mock_retrieve.side_effect = Exception("Unexpected failure")
 
         response = client.post("/search", json={"query": "What is xz?"})
@@ -78,7 +78,7 @@ def test_search_generic_error():
 
 def test_search_response_schema_validation():
     """Test that the endpoint enforces SearchResponse structure."""
-    with patch("app.api.routes.retrieve") as mock_retrieve:
+    with patch("app.api.dependencies.retrieve") as mock_retrieve:
         mock_retrieve.return_value = [
             {"id": "CVE-2024-1234", "description": "Description here"}
         ]

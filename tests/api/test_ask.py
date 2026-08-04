@@ -1,3 +1,4 @@
+import unittest.mock
 import pytest
 from fastapi.testclient import TestClient
 from unittest.mock import patch, MagicMock
@@ -25,7 +26,7 @@ def test_ask_success():
         assert data["answer"] == "This is a mock answer."
         assert data["sources"] == ["CVE-2024-1234"]
         assert data["metadata"] == [{"id": "CVE-2024-1234", "severity": "CRITICAL"}]
-        mock_generate.assert_called_once_with(query="How does CVE-2024-1234 work?", filters={"severity": "CRITICAL"})
+        mock_generate.assert_called_once_with(query="How does CVE-2024-1234 work?", filters={"severity": "CRITICAL"}, retrieval_pipeline=unittest.mock.ANY, llm_client=unittest.mock.ANY)
 
 def test_ask_empty_query():
     """Test /ask with an empty query (handled by pydantic validation)."""

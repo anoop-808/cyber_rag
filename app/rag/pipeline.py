@@ -14,7 +14,9 @@ logger = logging.getLogger(__name__)
 
 def generate_answer(
     query: str,
-    filters: dict[str, Any] | None = None
+    filters: dict[str, Any] | None = None,
+    retrieval_pipeline: Any = None,
+    llm_client: Any = None
 ) -> dict[str, Any]:
     """Execute the complete RAG workflow to answer a user query.
 
@@ -53,10 +55,16 @@ def generate_answer(
         logger.error("Empty query received.")
         raise ValueError("Query cannot be empty.")
 
+    # Use provided dependencies or fall back to default
+    if retrieval_pipeline is None:
+        retrieval_pipeline = retrieve
+    if llm_client is None:
+        llm_client = generate_response
+
     # 1. Retrieval
     logger.info("Step 1/5: Retrieving documents...")
     try:
-        documents = retrieve(query=query, filters=filters)
+        documents = retrieval_pipeline(query=query, filters=filters)
     except Exception as e:
         logger.error(f"Retrieval failed: {e}")
         raise RuntimeError(f"Retrieval failed: {e}") from e
@@ -88,7 +96,7 @@ def generate_answer(
     # 4. LLM Interface
     logger.info("Step 4/5: Generating LLM response...")
     try:
-        llm_response = generate_response(
+        llm_response = llm_client(
             system_prompt=prompts["system"],
             user_prompt=prompts["user"]
         )

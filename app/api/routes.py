@@ -1,13 +1,13 @@
 """FastAPI routes for CyberRAG RAG endpoint."""
 
-from typing import Any, Optional
-from fastapi import APIRouter, HTTPException, Query
+from typing import Any, Callable, Optional
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from app.search.sqlite_search import search_cves_fts
 from app.api.models import AskRequest, AskResponse, SearchRequest, SearchResponse
 from app.rag.pipeline import generate_answer
-from app.retrieval.pipeline import retrieve
+from app.api.dependencies import get_retrieval_pipeline, get_llm_client
 import logging
 import time
 
@@ -19,7 +19,11 @@ router = APIRouter()
 
 
 @router.post("/ask", response_model=AskResponse)
-def ask_question(request: AskRequest) -> dict[str, Any]:
+def ask_question(
+    request: AskRequest,
+    retrieval_pipeline: Callable = Depends(get_retrieval_pipeline),
+    llm_client: Callable = Depends(get_llm_client)
+) -> dict[str, Any]:
     """Answer a cybersecurity question using the RAG pipeline.
 
     Parameters
@@ -40,7 +44,12 @@ def ask_question(request: AskRequest) -> dict[str, Any]:
     logger.info(f"Received /ask request. Query length: {len(request.query) if request.query else 0}")
     start_time = time.time()
     try:
-        response = generate_answer(query=request.query, filters=request.filters)
+        response = generate_answer(
+            query=request.query,
+            filters=request.filters,
+            retrieval_pipeline=retrieval_pipeline,
+            llm_client=llm_client
+        )
         duration = time.time() - start_time
         logger.info(f"Successfully processed /ask request in {duration:.2f}s")
         return response
@@ -79,7 +88,10 @@ def get_cve_endpoint(cve_id: str) -> dict[str, Any]:
     return cve_detail
 
 @router.post("/search", response_model=SearchResponse)
-def search_documents(request: SearchRequest) -> dict[str, Any]:
+def search_documents(
+    request: SearchRequest,
+    retrieval_pipeline: Callable = Depends(get_retrieval_pipeline)
+) -> dict[str, Any]:
     """Retrieve relevant CVE documents using the unified retrieval pipeline.
 
     Parameters
@@ -100,7 +112,7 @@ def search_documents(request: SearchRequest) -> dict[str, Any]:
     logger.info(f"Received POST /search request. Query length: {len(request.query) if request.query else 0}")
     start_time = time.time()
     try:
-        documents = retrieve(query=request.query, filters=request.filters)
+        documents = retrieval_pipeline(query=request.query, filters=request.filters)
         duration = time.time() - start_time
         logger.info(f"Successfully processed POST /search request in {duration:.2f}s")
         return {"documents": documents}
