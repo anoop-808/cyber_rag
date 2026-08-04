@@ -48,6 +48,12 @@ function Home() {
                 ) : (
                     <>
                         <SearchBar onSearch={handleSearch} initialQuery={searchQuery} />
+                        {!hasSearched && !loading && (
+                            <div className="empty-state">
+                                <h2>Cybersecurity Knowledge Assistant</h2>
+                                <p>Enter a keyword, CVE ID, or product to begin exploring vulnerabilities.</p>
+                            </div>
+                        )}
                         <SearchResults
                             results={results}
                             loading={loading}

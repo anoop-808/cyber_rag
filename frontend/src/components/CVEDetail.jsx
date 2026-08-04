@@ -44,57 +44,64 @@ function CVEDetail({ cveId, onBack }) {
             </div>
 
             <div className="cve-detail-body">
-                <section>
-                    <h3>Description</h3>
-                    <p>{cve.description || 'Not Available'}</p>
-                </section>
-
-                <div className="cve-dates">
-                    <p><strong>Published:</strong> {cve.published ? new Date(cve.published).toLocaleDateString() : 'Not Available'}</p>
-                    <p><strong>Modified:</strong> {cve.modified ? new Date(cve.modified).toLocaleDateString() : 'Not Available'}</p>
+                <div className="detail-section">
+                    <section>
+                        <h3>Description</h3>
+                        <p>{cve.description || 'Not Available'}</p>
+                    </section>
+                    <div className="cve-dates">
+                        <p><strong>Published:</strong> {cve.published ? new Date(cve.published).toLocaleDateString() : 'Not Available'}</p>
+                        <p><strong>Modified:</strong> {cve.modified ? new Date(cve.modified).toLocaleDateString() : 'Not Available'}</p>
+                    </div>
                 </div>
 
-                <section>
-                    <h3>CWE</h3>
-                    {cve.cwe ? (
-                        <p><strong>{cve.cwe.id}:</strong> {cve.cwe.name || 'Not Available'}</p>
-                    ) : (
-                        <p>Not Available</p>
-                    )}
-                </section>
+                <div className="detail-section">
+                    <section>
+                        <h3>CWE</h3>
+                        {cve.cwe ? (
+                            <p><strong>{cve.cwe.id}:</strong> {cve.cwe.name || 'Not Available'}</p>
+                        ) : (
+                            <p>Not Available</p>
+                        )}
+                    </section>
+                </div>
 
-                <section>
-                    <h3>Affected Products (CPEs)</h3>
-                    {cve.cpes && cve.cpes.length > 0 ? (
-                        <ul className="cpe-list">
-                            {cve.cpes.map((cpe) => (
-                                <li key={cpe.id}>{cpe.uri}</li>
-                            ))}
-                        </ul>
-                    ) : (
-                        <p>Not Available</p>
-                    )}
-                </section>
+                <div className="detail-section">
+                    <section>
+                        <h3>Affected Products (CPEs)</h3>
+                        {cve.cpes && cve.cpes.length > 0 ? (
+                            <ul className="cpe-list">
+                                {cve.cpes.map((cpe) => (
+                                    <li key={cpe.id}>{cpe.uri}</li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <p>Not Available</p>
+                        )}
+                    </section>
+                </div>
 
-                <section>
-                    <h3>References</h3>
-                    {cve.references && cve.references.length > 0 ? (
-                        <ul className="reference-list">
-                            {cve.references.map((ref, index) => {
-                                // Handles both object structure {url: "..."} and string structure
-                                const url = typeof ref === 'string' ? ref : ref.url;
-                                if (!url) return null;
-                                return (
-                                    <li key={index}>
-                                        <a href={url} target="_blank" rel="noopener noreferrer">{url}</a>
-                                    </li>
-                                );
-                            })}
-                        </ul>
-                    ) : (
-                        <p>Not Available</p>
-                    )}
-                </section>
+                <div className="detail-section">
+                    <section>
+                        <h3>References</h3>
+                        {cve.references && cve.references.length > 0 ? (
+                            <ul className="reference-list">
+                                {cve.references.map((ref, index) => {
+                                    // Handles both object structure {url: "..."} and string structure
+                                    const url = typeof ref === 'string' ? ref : ref.url;
+                                    if (!url) return null;
+                                    return (
+                                        <li key={index}>
+                                            <a href={url} target="_blank" rel="noopener noreferrer">{url}</a>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        ) : (
+                            <p>Not Available</p>
+                        )}
+                    </section>
+                </div>
             </div>
         </div>
     );
