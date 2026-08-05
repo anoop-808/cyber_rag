@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import SearchBar from '../components/SearchBar';
+import SearchResults from '../components/SearchResults';
 import { searchCVEs } from '../services/api';
 
 const SearchPage: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [results, setResults] = useState<any[]>([]);
+    const [hasSearched, setHasSearched] = useState(false);
 
     const handleSearch = async (query: string, filters: Record<string, any>) => {
         if (!query.trim()) {
@@ -14,11 +17,13 @@ const SearchPage: React.FC = () => {
 
         setLoading(true);
         setError(null);
+        setHasSearched(true);
+        setResults([]);
 
         try {
-            // Deferring results implementation to TASK_024 per requirements.
-            // Just making the API call to satisfy TASK_023 definition of done.
-            await searchCVEs(query, filters);
+            const data = await searchCVEs(query, filters);
+            // API returns SearchResponse with { documents: [...] }
+            setResults(data.documents || data.results || []);
         } catch (err: any) {
             if (err.response) {
                 setError(`API Error: ${err.response.status} - Failed to fetch search results.`);
@@ -40,17 +45,12 @@ const SearchPage: React.FC = () => {
             <main>
                 <SearchBar onSearch={handleSearch} loading={loading} />
 
-                {loading && (
-                    <div className="loading-indicator">
-                        <p>Loading results...</p>
-                    </div>
-                )}
-
-                {error && (
-                    <div className="error-message">
-                        <p style={{ color: 'red' }}>{error}</p>
-                    </div>
-                )}
+                <SearchResults
+                    results={results}
+                    loading={loading}
+                    error={error}
+                    hasSearched={hasSearched}
+                />
             </main>
         </div>
     );
