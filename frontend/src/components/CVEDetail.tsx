@@ -1,10 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { getCVEDetail } from '../services/api';
 
-function CVEDetail({ cveId, onBack }) {
-    const [cve, setCve] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+interface CVEDetailProps {
+  cveId: string;
+  onBack: () => void;
+}
+
+const CVEDetail: React.FC<CVEDetailProps> = ({ cveId, onBack }) => {
+    const [cve, setCve] = useState<any>(null);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchDetail = async () => {
@@ -67,7 +72,7 @@ function CVEDetail({ cveId, onBack }) {
                     <h3>Affected Products (CPEs)</h3>
                     {cve.cpes && cve.cpes.length > 0 ? (
                         <ul className="cpe-list">
-                            {cve.cpes.map((cpe) => (
+                            {cve.cpes.map((cpe: any) => (
                                 <li key={cpe.id}>{cpe.uri}</li>
                             ))}
                         </ul>
@@ -80,7 +85,7 @@ function CVEDetail({ cveId, onBack }) {
                     <h3>References</h3>
                     {cve.references && cve.references.length > 0 ? (
                         <ul className="reference-list">
-                            {cve.references.map((ref, index) => {
+                            {cve.references.map((ref: any, index: number) => {
                                 // Handles both object structure {url: "..."} and string structure
                                 const url = typeof ref === 'string' ? ref : ref.url;
                                 if (!url) return null;

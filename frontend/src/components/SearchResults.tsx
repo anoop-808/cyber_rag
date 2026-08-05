@@ -1,7 +1,15 @@
 import React from 'react';
-import CVECard from './CVECard';
+import CVECard, { CVEData } from './CVECard';
 
-function SearchResults({ results, loading, error, hasSearched, onCveClick }) {
+interface SearchResultsProps {
+  results: CVEData[];
+  loading: boolean;
+  error: string | null;
+  hasSearched: boolean;
+  onCveClick?: (id: string) => void;
+}
+
+const SearchResults: React.FC<SearchResultsProps> = ({ results, loading, error, hasSearched, onCveClick }) => {
     if (loading) return <div className="loading">Loading...</div>;
     if (error) return <div className="error">{error}</div>;
 
