@@ -106,3 +106,4 @@ function CVEDetail({ cveId, onBack }: CVEDetailProps) {
 }
 
 export default CVEDetail;
+// Added for review visibility
