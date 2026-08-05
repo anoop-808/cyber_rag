@@ -4,15 +4,15 @@ import SearchResults from '../components/SearchResults';
 import CVEDetail from '../components/CVEDetail';
 import { searchCVEs } from '../services/api';
 
-function Home() {
-    const [results, setResults] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
-    const [hasSearched, setHasSearched] = useState(false);
-    const [selectedCveId, setSelectedCveId] = useState(null);
-    const [searchQuery, setSearchQuery] = useState('');
+const Home: React.FC = () => {
+    const [results, setResults] = useState<any[]>([]);
+    const [loading, setLoading] = useState<boolean>(false);
+    const [error, setError] = useState<string | null>(null);
+    const [hasSearched, setHasSearched] = useState<boolean>(false);
+    const [selectedCveId, setSelectedCveId] = useState<string | null>(null);
+    const [searchQuery, setSearchQuery] = useState<string>('');
 
-    const handleSearch = async (query) => {
+    const handleSearch = async (query: string) => {
         setSearchQuery(query);
         setLoading(true);
         setError(null);
@@ -29,7 +29,7 @@ function Home() {
         }
     };
 
-    const handleCveClick = (id) => {
+    const handleCveClick = (id: string) => {
         setSelectedCveId(id);
     };
 
@@ -60,5 +60,5 @@ function Home() {
             </main>
         </div>
     );
-}
+};
 export default Home;
