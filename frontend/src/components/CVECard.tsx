@@ -1,6 +1,11 @@
 import React from 'react';
 
-function CVECard({ cve, onClick }) {
+interface CVECardProps {
+    cve: any;
+    onClick?: (id: string) => void;
+}
+
+function CVECard({ cve, onClick }: CVECardProps) {
     return (
         <div className="cve-card" style={{ cursor: 'pointer' }} onClick={() => onClick && onClick(cve.id)}>
             <h3>{cve.id}</h3>

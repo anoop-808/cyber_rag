@@ -8,9 +8,19 @@ export default defineConfig({
     proxy: {
       '/search': {
         target: 'http://127.0.0.1:8000',
-        changeOrigin: true
+        changeOrigin: true,
+        bypass: (req, res, options) => {
+          // Do not proxy if the request wants an HTML page (like going to /search in browser)
+          if (req.headers.accept?.includes('text/html')) {
+            return '/index.html';
+          }
+        }
       },
       '/cve': {
+        target: 'http://127.0.0.1:8000',
+        changeOrigin: true
+      },
+      '/ask': {
         target: 'http://127.0.0.1:8000',
         changeOrigin: true
       }

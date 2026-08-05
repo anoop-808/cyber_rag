@@ -5,22 +5,23 @@ import CVEDetail from '../components/CVEDetail';
 import { searchCVEs } from '../services/api';
 
 function Home() {
-    const [results, setResults] = useState([]);
+    const [results, setResults] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(null);
+    const [error, setError] = useState<string | null>(null);
     const [hasSearched, setHasSearched] = useState(false);
-    const [selectedCveId, setSelectedCveId] = useState(null);
+    const [selectedCveId, setSelectedCveId] = useState<string | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
 
-    const handleSearch = async (query) => {
+    const handleSearch = async (query: string, filters: Record<string, any> = {}) => {
         setSearchQuery(query);
         setLoading(true);
         setError(null);
         setHasSearched(true);
         setSelectedCveId(null);
         try {
-            const data = await searchCVEs(query);
-            setResults(data.results || []);
+            const data = await searchCVEs(query, filters);
+            // SearchResponse returns { documents: [...] }
+            setResults(data.documents || data.results || []);
         } catch (err) {
             setError('Failed to fetch search results. Backend may be unavailable.');
             setResults([]);
@@ -29,7 +30,7 @@ function Home() {
         }
     };
 
-    const handleCveClick = (id) => {
+    const handleCveClick = (id: string) => {
         setSelectedCveId(id);
     };
 

@@ -1,10 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { getCVEDetail } from '../services/api';
 
-function CVEDetail({ cveId, onBack }) {
-    const [cve, setCve] = useState(null);
+interface CVEDetailProps {
+    cveId: string;
+    onBack: () => void;
+}
+
+function CVEDetail({ cveId, onBack }: CVEDetailProps) {
+    const [cve, setCve] = useState<any>(null);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchDetail = async () => {
