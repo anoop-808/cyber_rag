@@ -1,8 +1,8 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import CVEDetail from '../components/CVEDetail';
+import CVEInfoCard from '../components/CVEInfoCard';
 
-const CVEDetailPage: React.FC = () => {
+const CVEDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
 
@@ -25,10 +25,10 @@ const CVEDetailPage: React.FC = () => {
                 <h1>CVE Details</h1>
             </header>
             <main>
-                <CVEDetail cveId={id} onBack={handleBack} />
+                <CVEInfoCard cveId={id} onBack={handleBack} />
             </main>
         </div>
     );
 };
 
-export default CVEDetailPage;
+export default CVEDetail;

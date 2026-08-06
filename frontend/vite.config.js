@@ -18,11 +18,21 @@ export default defineConfig({
       },
       '/cve': {
         target: 'http://127.0.0.1:8000',
-        changeOrigin: true
+        changeOrigin: true,
+        bypass: (req, res, options) => {
+          if (req.headers.accept?.includes('text/html')) {
+            return '/index.html';
+          }
+        }
       },
       '/ask': {
         target: 'http://127.0.0.1:8000',
-        changeOrigin: true
+        changeOrigin: true,
+        bypass: (req, res, options) => {
+          if (req.headers.accept?.includes('text/html')) {
+            return '/index.html';
+          }
+        }
       }
     }
   }

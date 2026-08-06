@@ -6,7 +6,7 @@ interface CVEDetailProps {
     onBack: () => void;
 }
 
-function CVEDetail({ cveId, onBack }: CVEDetailProps) {
+function CVEInfoCard({ cveId, onBack }: CVEDetailProps) {
     const [cve, setCve] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -105,5 +105,5 @@ function CVEDetail({ cveId, onBack }: CVEDetailProps) {
     );
 }
 
-export default CVEDetail;
+export default CVEInfoCard;
 // Added for review visibility

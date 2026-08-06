@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import SearchBar from '../components/SearchBar';
 import SearchResults from '../components/SearchResults';
-import CVEDetail from '../components/CVEDetail';
+import CVEInfoCard from '../components/CVEInfoCard';
 import { searchCVEs } from '../services/api';
 
 function Home() {
@@ -45,7 +45,7 @@ function Home() {
             </header>
             <main>
                 {selectedCveId ? (
-                    <CVEDetail cveId={selectedCveId} onBack={handleBack} />
+                    <CVEInfoCard cveId={selectedCveId} onBack={handleBack} />
                 ) : (
                     <>
                         <SearchBar onSearch={handleSearch} initialQuery={searchQuery} />
