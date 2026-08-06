@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import SearchBar from '../components/SearchBar';
 import SearchResults from '../components/SearchResults';
 import CVEInfoCard from '../components/CVEInfoCard';
+import Layout from '../components/Layout';
 import { searchCVEs } from '../services/api';
 
 function Home() {
@@ -39,16 +40,17 @@ function Home() {
     };
 
     return (
-        <div className="home">
-            <header>
-                <h1>CyberRAG</h1>
-            </header>
-            <main>
+        <Layout>
+            <div className="home-content">
                 {selectedCveId ? (
                     <CVEInfoCard cveId={selectedCveId} onBack={handleBack} />
                 ) : (
                     <>
-                        <SearchBar onSearch={handleSearch} initialQuery={searchQuery} />
+                        <div className="page-header">
+                            <h1>Search Vulnerabilities</h1>
+                            <p className="page-description">Find the latest Common Vulnerabilities and Exposures (CVEs).</p>
+                        </div>
+                        <SearchBar onSearch={handleSearch} initialQuery={searchQuery} loading={loading} />
                         <SearchResults
                             results={results}
                             loading={loading}
@@ -58,8 +60,8 @@ function Home() {
                         />
                     </>
                 )}
-            </main>
-        </div>
+            </div>
+        </Layout>
     );
 }
 export default Home;

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import AskForm from '../components/AskForm';
 import AnswerCard from '../components/AnswerCard';
+import Layout from '../components/Layout';
 import { askCyberRAG } from '../services/api';
 
 const Ask: React.FC = () => {
@@ -28,7 +29,7 @@ const Ask: React.FC = () => {
                     errorMessage = `Error: ${err.response.data?.detail || err.message}`;
                 }
             } else if (err.request) {
-                errorMessage = 'Network error: Unable to contact the server. Please check your connection.';
+                errorMessage = 'Unable to contact the server.';
             }
 
             setError(errorMessage);
@@ -38,29 +39,30 @@ const Ask: React.FC = () => {
     };
 
     return (
-        <div className="ask-page" style={{ padding: '2rem', maxWidth: '800px', margin: '0 auto' }}>
-            <header style={{ marginBottom: '2rem' }}>
-                <h1>Ask CyberRAG</h1>
-            </header>
+        <Layout>
+            <div className="ask-page-content">
+                <div className="page-header">
+                    <h1>Ask CyberRAG</h1>
+                    <p className="page-description">Get AI-powered answers about cybersecurity vulnerabilities.</p>
+                </div>
 
-            <main>
                 <AskForm onAsk={handleAsk} loading={loading} />
 
                 {loading && (
-                    <div className="loading" style={{ marginTop: '1rem' }}>
-                        Generating answer...
+                    <div className="loading-state">
+                        <p>Generating answer...</p>
                     </div>
                 )}
 
                 {error && (
-                    <div className="error" style={{ color: 'red', marginTop: '1rem' }}>
-                        {error}
+                    <div className="error-state">
+                        <p>{error}</p>
                     </div>
                 )}
 
                 {!loading && !error && !answerData && (
-                    <div className="empty-state" style={{ marginTop: '2rem', fontStyle: 'italic', color: '#666' }}>
-                        Ask CyberRAG anything about CVEs.
+                    <div className="empty-state">
+                        <p>Ask a cybersecurity question.</p>
                     </div>
                 )}
 
@@ -71,8 +73,8 @@ const Ask: React.FC = () => {
                         confidence={answerData.confidence}
                     />
                 )}
-            </main>
-        </div>
+            </div>
+        </Layout>
     );
 };
 
