@@ -49,6 +49,6 @@ def test_lifespan_lifecycle():
 
         # Using TestClient as a context manager triggers the lifespan events
         with TestClient(app) as client:
-            mock_get_vector_store.assert_called_once()
+            mock_get_vector_store.assert_not_called()
             mock_init_db.assert_called_once()
-            mock_exists.assert_called_once_with("storage/datasets/processed/processed_cves.json")
+            mock_exists.assert_not_called()

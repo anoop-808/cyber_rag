@@ -1,6 +1,7 @@
 #!/bin/bash
 # Start backend
-PYTHONPATH=. python -m uvicorn app.main:app --port 8000 > backend.log 2>&1 &
+PORT="${PORT:-8000}"
+PYTHONPATH=. python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT > backend.log 2>&1 &
 BACKEND_PID=$!
 
 # Start frontend
