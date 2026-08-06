@@ -1,5 +1,7 @@
 import React from 'react';
 import SearchResultCard from './SearchResultCard';
+import { FadeIn } from './motion';
+import { LoadingState, EmptyState, ErrorState } from './ui';
 
 interface SearchResultsProps {
     results: any[];
@@ -7,30 +9,24 @@ interface SearchResultsProps {
     error: string | null;
     hasSearched: boolean;
     onCveClick?: (id: string) => void;
+    onRetry?: () => void;
 }
 
-function SearchResults({ results, loading, error, hasSearched, onCveClick }: SearchResultsProps) {
+function SearchResults({ results, loading, error, hasSearched, onCveClick, onRetry }: SearchResultsProps) {
     if (loading) {
-        return (
-            <div className="loading-state">
-                <p>Searching...</p>
-            </div>
-        );
+        return <LoadingState label="Searching..." skeleton />;
     }
 
     if (error) {
-        return (
-            <div className="error-state">
-                <p>{error}</p>
-            </div>
-        );
+        return <ErrorState message={error} onRetry={onRetry} />;
     }
 
     if (hasSearched && results.length === 0) {
         return (
-            <div className="empty-state">
-                <p>No search results.</p>
-            </div>
+            <EmptyState
+                title="No vulnerabilities found"
+                message="Try different keywords, check the spelling, or remove severity filters to broaden your search."
+            />
         );
     }
 
@@ -39,16 +35,18 @@ function SearchResults({ results, loading, error, hasSearched, onCveClick }: Sea
     }
 
     return (
-        <div className="search-results-container">
-            <div className="result-count" style={{ marginBottom: '1rem', fontWeight: 'bold' }}>
-                <p>{results.length} Results Found</p>
+        <FadeIn>
+            <div className="search-results-container">
+                <div className="result-count">
+                    <p><strong>{results.length}</strong> Results Found</p>
+                </div>
+                <div className="search-results">
+                    {results.map((cve) => (
+                        <SearchResultCard key={cve.id} cve={cve} onClick={onCveClick} />
+                    ))}
+                </div>
             </div>
-            <div className="search-results">
-                {results.map((cve) => (
-                    <SearchResultCard key={cve.id} cve={cve} onClick={onCveClick} />
-                ))}
-            </div>
-        </div>
+        </FadeIn>
     );
 }
 

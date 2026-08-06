@@ -1,0 +1,115 @@
+/* ============================================================
+   CyberRAG — Design Tokens (Theme Configuration)
+   Single source of truth for colors, spacing, type, radii,
+   shadows, and motion. Every global style references these
+   tokens — never hardcode values in components.
+   ============================================================ */
+
+:root {
+    /* ---- Surfaces ---- */
+    --bg-primary: #090909;          /* page background (near-black) */
+    --bg-secondary: #111111;        /* header / footer / elevated areas */
+    --bg-tertiary: #161616;         /* hovered surfaces */
+    --bg-elevated: #1a1a1a;         /* cards on hover / active */
+    --bg-inset: #0d0d0d;            /* inputs, table headers */
+
+    /* ---- Borders ---- */
+    --border-subtle: rgba(255, 255, 255, 0.07);
+    --border-default: rgba(255, 255, 255, 0.12);
+    --border-strong: rgba(255, 255, 255, 0.22);
+
+    /* ---- Accents ---- */
+    --accent-primary: #00FF88;                      /* Cyber Green */
+    --accent-primary-hover: #35ffa4;
+    --accent-primary-dim: rgba(0, 255, 136, 0.12);  /* tinted surfaces */
+    --accent-primary-glow: rgba(0, 255, 136, 0.25);
+
+    --accent-secondary: #00D4FF;                    /* Electric Cyan */
+    --accent-secondary-hover: #3ae0ff;
+    --accent-secondary-dim: rgba(0, 212, 255, 0.12);
+    --accent-secondary-glow: rgba(0, 212, 255, 0.25);
+
+    /* ---- Severity (badges) ---- */
+    --severity-critical: #ff4d5e;
+    --severity-critical-dim: rgba(255, 77, 94, 0.14);
+    --severity-high: #ff8a3d;
+    --severity-high-dim: rgba(255, 138, 61, 0.14);
+    --severity-medium: #ffc53d;
+    --severity-medium-dim: rgba(255, 197, 61, 0.14);
+    --severity-low: #3da5ff;
+    --severity-low-dim: rgba(61, 165, 255, 0.14);
+    --severity-unknown: #8b8f98;
+    --severity-unknown-dim: rgba(139, 143, 152, 0.14);
+
+    /* ---- Text ---- */
+    --text-primary: #ffffff;
+    --text-secondary: #a3a3ad;
+    --text-muted: #8a8f98;      /* WCAG AA compliant on dark surfaces */
+    --text-on-accent: #04140c;      /* dark text on green */
+
+    /* ---- Typography ---- */
+    --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
+        Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", SFMono-Regular, "Cascadia Code",
+        Consolas, "Liberation Mono", Menlo, monospace;
+
+    --text-xs: 0.75rem;
+    --text-sm: 0.8125rem;
+    --text-base: 0.9375rem;
+    --text-lg: 1.125rem;
+    --text-xl: 1.375rem;
+    --text-2xl: 1.75rem;
+    --text-3xl: 2.25rem;
+
+    --leading-tight: 1.25;
+    --leading-normal: 1.55;
+
+    --weight-normal: 400;
+    --weight-medium: 500;
+    --weight-semibold: 600;
+    --weight-bold: 700;
+
+    /* ---- Spacing scale ---- */
+    --space-1: 0.25rem;   /*  4px  */
+    --space-2: 0.5rem;    /*  8px  */
+    --space-3: 0.75rem;   /* 12px  */
+    --space-4: 1rem;      /* 16px  */
+    --space-5: 1.25rem;   /* 20px  */
+    --space-6: 1.5rem;    /* 24px  */
+    --space-8: 2rem;      /* 32px  */
+    --space-10: 2.5rem;   /* 40px  */
+    --space-12: 3rem;     /* 48px  */
+    --space-16: 4rem;     /* 64px  */
+
+    /* ---- Radii ---- */
+    --radius-sm: 0.375rem;   /*  6px  */
+    --radius-md: 0.5rem;     /*  8px  */
+    --radius-lg: 0.75rem;    /* 12px  */
+    --radius-xl: 1rem;       /* 16px  */
+    --radius-full: 9999px;
+
+    /* ---- Shadows ---- */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.45);
+    --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.55);
+    --glow-primary: 0 0 0 1px var(--accent-primary-glow),
+        0 0 18px var(--accent-primary-dim);
+    --glow-secondary: 0 0 0 1px var(--accent-secondary-glow),
+        0 0 18px var(--accent-secondary-dim);
+
+    /* ---- Motion ---- */
+    --transition-fast: 120ms;
+    --transition-base: 200ms;
+    --transition-slow: 320ms;
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* ---- Layout ---- */
+    --container-max: 1024px;
+    --header-height: 64px;
+    --content-pad: var(--space-8);
+
+    /* ---- Z-index ---- */
+    --z-header: 100;
+    --z-overlay: 200;
+}

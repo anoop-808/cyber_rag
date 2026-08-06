@@ -9,7 +9,7 @@ export default defineConfig({
       '/search': {
         target: 'http://127.0.0.1:8000',
         changeOrigin: true,
-        bypass: (req, res, options) => {
+        bypass: (req, _res, _options) => {
           // Do not proxy if the request wants an HTML page (like going to /search in browser)
           if (req.headers.accept?.includes('text/html')) {
             return '/index.html';
@@ -19,7 +19,7 @@ export default defineConfig({
       '/cve': {
         target: 'http://127.0.0.1:8000',
         changeOrigin: true,
-        bypass: (req, res, options) => {
+        bypass: (req, _res, _options) => {
           if (req.headers.accept?.includes('text/html')) {
             return '/index.html';
           }
@@ -28,7 +28,7 @@ export default defineConfig({
       '/ask': {
         target: 'http://127.0.0.1:8000',
         changeOrigin: true,
-        bypass: (req, res, options) => {
+        bypass: (req, _res, _options) => {
           if (req.headers.accept?.includes('text/html')) {
             return '/index.html';
           }

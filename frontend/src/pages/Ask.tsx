@@ -2,14 +2,20 @@ import React, { useState } from 'react';
 import AskForm from '../components/AskForm';
 import AnswerCard from '../components/AnswerCard';
 import Layout from '../components/Layout';
+import { PageHeader, LoadingState, ErrorState, EmptyState } from '../components/ui';
+import { useToast } from '../components/ui/toast-context';
+import { QuestionIcon } from '../components/icons';
 import { askCyberRAG } from '../services/api';
 
 const Ask: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [answerData, setAnswerData] = useState<any>(null);
+    const [lastQuery, setLastQuery] = useState('');
+    const { showToast } = useToast();
 
     const handleAsk = async (query: string) => {
+        setLastQuery(query);
         setLoading(true);
         setError(null);
         setAnswerData(null); // Clear previous answer
@@ -17,6 +23,7 @@ const Ask: React.FC = () => {
         try {
             const data = await askCyberRAG(query);
             setAnswerData(data);
+            showToast('Answer generated');
         } catch (err: any) {
             // Handle errors gracefully as per requirements
             let errorMessage = 'An unexpected error occurred. Please try again.';
@@ -33,6 +40,7 @@ const Ask: React.FC = () => {
             }
 
             setError(errorMessage);
+            showToast('Request failed', 'error');
         } finally {
             setLoading(false);
         }
@@ -41,35 +49,37 @@ const Ask: React.FC = () => {
     return (
         <Layout>
             <div className="ask-page-content">
-                <div className="page-header">
-                    <h1>Ask CyberRAG</h1>
-                    <p className="page-description">Get AI-powered answers about cybersecurity vulnerabilities.</p>
-                </div>
+                <PageHeader
+                    title="Ask CyberRAG"
+                    subtitle="Get AI-powered answers about cybersecurity vulnerabilities."
+                />
 
                 <AskForm onAsk={handleAsk} loading={loading} />
 
                 {loading && (
-                    <div className="loading-state">
-                        <p>Generating answer...</p>
-                    </div>
+                    <LoadingState label="Generating answer..." />
                 )}
 
                 {error && (
-                    <div className="error-state">
-                        <p>{error}</p>
-                    </div>
+                    <ErrorState
+                        message={error}
+                        onRetry={() => lastQuery && handleAsk(lastQuery)}
+                    />
                 )}
 
                 {!loading && !error && !answerData && (
-                    <div className="empty-state">
-                        <p>Ask a cybersecurity question.</p>
-                    </div>
+                    <EmptyState
+                        title="Ready when you are"
+                        message="Ask a cybersecurity question to get a grounded, source-backed answer."
+                        icon={<QuestionIcon />}
+                    />
                 )}
 
                 {answerData && !loading && (
                     <AnswerCard
                         answer={answerData.answer}
                         sources={answerData.sources || []}
+                        metadata={answerData.metadata || []}
                         confidence={answerData.confidence}
                     />
                 )}

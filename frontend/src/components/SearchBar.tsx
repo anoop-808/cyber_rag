@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import SeverityFilter from './SeverityFilter';
+import { SearchIcon } from './icons';
 
 interface SearchBarProps {
     onSearch: (query: string, filters: Record<string, any>) => void;
@@ -23,16 +24,23 @@ function SearchBar({ onSearch, initialQuery = '', loading = false }: SearchBarPr
     };
 
     return (
-        <form className="search-bar" onSubmit={handleSubmit}>
-            <input
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search vulnerabilities........"
-                disabled={loading}
-            />
+        <form className="search-bar" role="search" onSubmit={handleSubmit}>
+            <div className="search-input-wrap">
+                <span className="search-input-icon">
+                    <SearchIcon />
+                </span>
+                <input
+                    type="text"
+                    name="query"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Search vulnerabilities, vendors, or products..."
+                    disabled={loading}
+                    aria-label="Search vulnerabilities"
+                />
+            </div>
             <SeverityFilter value={severity} onChange={setSeverity} disabled={loading} />
-            <button type="submit" disabled={loading || !query.trim()}>
+            <button type="submit" className="btn btn-primary" disabled={loading || !query.trim()}>
                 {loading ? 'Searching...' : 'Search'}
             </button>
         </form>
