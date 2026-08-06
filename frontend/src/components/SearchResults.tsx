@@ -12,16 +12,15 @@ interface SearchResultsProps {
 function SearchResults({ results, loading, error, hasSearched, onCveClick }: SearchResultsProps) {
     if (loading) {
         return (
-            <div className="loading">
-                <p>Loading placeholders...</p>
-                {/* Skeletons could go here */}
+            <div className="loading-state">
+                <p>Searching...</p>
             </div>
         );
     }
 
     if (error) {
         return (
-            <div className="error">
+            <div className="error-state">
                 <p>{error}</p>
             </div>
         );
@@ -29,9 +28,8 @@ function SearchResults({ results, loading, error, hasSearched, onCveClick }: Sea
 
     if (hasSearched && results.length === 0) {
         return (
-            <div className="no-results">
-                <p>No vulnerabilities found.</p>
-                <p>Try another search.</p>
+            <div className="empty-state">
+                <p>No search results.</p>
             </div>
         );
     }

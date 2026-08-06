@@ -30,8 +30,8 @@ function CVEInfoCard({ cveId, onBack }: CVEDetailProps) {
         }
     }, [cveId]);
 
-    if (loading) return <div className="loading">Loading details...</div>;
-    if (error) return <div className="error">{error}</div>;
+    if (loading) return <div className="loading-state"><p>Loading CVE...</p></div>;
+    if (error) return <div className="error-state"><p>CVE not found.</p></div>;
     if (!cve) return null;
 
     return (
@@ -40,11 +40,26 @@ function CVEInfoCard({ cveId, onBack }: CVEDetailProps) {
 
             <div className="cve-detail-header">
                 <h2>{cve.id || 'Not Available'}</h2>
-                <div className="cve-meta">
+            </div>
+
+            <div className="cve-detail-meta-grid">
+                <div className="meta-group">
+                    <h4>Severity</h4>
                     <span className={`severity-badge ${cve.severity ? cve.severity.toLowerCase() : 'unknown'}`}>
                         {cve.severity || 'Not Available'}
                     </span>
-                    <span className="cvss-score">CVSS: {cve.cvss?.score || 'Not Available'}</span>
+                </div>
+                <div className="meta-group">
+                    <h4>CVSS</h4>
+                    <span className="cvss-score">{cve.cvss?.score || 'Not Available'}</span>
+                </div>
+                <div className="meta-group">
+                    <h4>Published</h4>
+                    <span>{cve.published ? new Date(cve.published).toLocaleDateString() : 'Not Available'}</span>
+                </div>
+                <div className="meta-group">
+                    <h4>Modified</h4>
+                    <span>{cve.modified ? new Date(cve.modified).toLocaleDateString() : 'Not Available'}</span>
                 </div>
             </div>
 
@@ -53,11 +68,6 @@ function CVEInfoCard({ cveId, onBack }: CVEDetailProps) {
                     <h3>Description</h3>
                     <p>{cve.description || 'Not Available'}</p>
                 </section>
-
-                <div className="cve-dates">
-                    <p><strong>Published:</strong> {cve.published ? new Date(cve.published).toLocaleDateString() : 'Not Available'}</p>
-                    <p><strong>Modified:</strong> {cve.modified ? new Date(cve.modified).toLocaleDateString() : 'Not Available'}</p>
-                </div>
 
                 <section>
                     <h3>CWE</h3>

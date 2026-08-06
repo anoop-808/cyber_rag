@@ -1,6 +1,7 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import CVEInfoCard from '../components/CVEInfoCard';
+import Layout from '../components/Layout';
 
 const CVEDetail: React.FC = () => {
     const { id } = useParams<{ id: string }>();
@@ -16,18 +17,24 @@ const CVEDetail: React.FC = () => {
     };
 
     if (!id) {
-        return <div className="error">No CVE ID provided.</div>;
+        return (
+            <Layout>
+                <div className="error-state">
+                    <p>No CVE ID provided.</p>
+                </div>
+            </Layout>
+        );
     }
 
     return (
-        <div className="cve-detail-page">
-            <header>
-                <h1>CVE Details</h1>
-            </header>
-            <main>
+        <Layout>
+            <div className="cve-detail-page-content">
+                <div className="page-header">
+                    <h1>CVE Details</h1>
+                </div>
                 <CVEInfoCard cveId={id} onBack={handleBack} />
-            </main>
-        </div>
+            </div>
+        </Layout>
     );
 };
 

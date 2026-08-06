@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import SearchBar from '../components/SearchBar';
 import SearchResults from '../components/SearchResults';
+import Layout from '../components/Layout';
 import { searchCVEs } from '../services/api';
 
 const SearchPage: React.FC = () => {
@@ -38,11 +39,13 @@ const SearchPage: React.FC = () => {
     };
 
     return (
-        <div className="search-page">
-            <header>
-                <h1>Search Vulnerabilities</h1>
-            </header>
-            <main>
+        <Layout>
+            <div className="search-page-content">
+                <div className="page-header">
+                    <h1>Search Vulnerabilities</h1>
+                    <p className="page-description">Find the latest Common Vulnerabilities and Exposures (CVEs).</p>
+                </div>
+
                 <SearchBar onSearch={handleSearch} loading={loading} />
 
                 <SearchResults
@@ -51,8 +54,8 @@ const SearchPage: React.FC = () => {
                     error={error}
                     hasSearched={hasSearched}
                 />
-            </main>
-        </div>
+            </div>
+        </Layout>
     );
 };
 
