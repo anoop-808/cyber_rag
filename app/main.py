@@ -9,7 +9,6 @@ import os
 from app.core.db import initialize_database
 from app.ingestion.importer import import_cve_data
 from app.ingestion.loader import load_json_dataset
-from app.api.dependencies import get_vector_store
 
 logger = logging.getLogger(__name__)
 
@@ -22,8 +21,6 @@ async def lifespan(app: FastAPI):
     logger.info("Initializing database...")
     # Initialize database on startup
     initialize_database()
-
-    import os
 
     IMPORT_DATA_ON_STARTUP = (
         os.getenv("IMPORT_DATA_ON_STARTUP", "false").lower() == "true"
@@ -61,3 +58,15 @@ def root() -> dict[str, str]:
         Response containing a welcome message.
     """
     return {"message": "CyberRAG API is running"}
+
+
+@app.get("/health")
+def health() -> dict[str, str]:
+    """Return application health status.
+
+    Returns
+    -------
+    dict
+        Response containing the current health status.
+    """
+    return {"status": "healthy"}

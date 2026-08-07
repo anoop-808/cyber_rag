@@ -10,7 +10,6 @@ from app.api.dependencies import (
 from app.core.config import Config
 from app.llm.client import generate_response
 from app.retrieval.pipeline import retrieve
-from chromadb.api.models.Collection import Collection
 
 def test_get_settings():
     """Test get_settings returns the Config instance."""
@@ -43,12 +42,10 @@ def test_lifespan_lifecycle():
     from fastapi.testclient import TestClient
     from app.main import app
 
-    with patch("app.main.get_vector_store") as mock_get_vector_store, \
-         patch("app.main.initialize_database") as mock_init_db, \
+    with patch("app.main.initialize_database") as mock_init_db, \
          patch("app.main.os.path.exists", return_value=False) as mock_exists:
 
         # Using TestClient as a context manager triggers the lifespan events
         with TestClient(app) as client:
-            mock_get_vector_store.assert_not_called()
             mock_init_db.assert_called_once()
             mock_exists.assert_not_called()

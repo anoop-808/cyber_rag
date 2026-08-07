@@ -1,17 +1,18 @@
 """ChromaDB vector store initialization for CyberRAG retrieval."""
 
 from pathlib import Path
+from typing import TYPE_CHECKING, Any
 
-import chromadb
-from chromadb.api.models.Collection import Collection
+if TYPE_CHECKING:
+    from chromadb.api.models.Collection import Collection
 
 VECTOR_DB_PATH = "storage/vectorstore"
 COLLECTION_NAME = "cyberrag_cves"
 
-_vector_collection: Collection | None = None
+_vector_collection: Any = None
 
 
-def get_vector_store() -> Collection:
+def get_vector_store() -> "Collection":
     """Return the persistent ChromaDB collection for CyberRAG CVEs.
 
     On first access, this function creates the vector store directory if
@@ -27,6 +28,8 @@ def get_vector_store() -> Collection:
     global _vector_collection
 
     if _vector_collection is None:
+        import chromadb
+
         vector_db_path = Path(VECTOR_DB_PATH)
         vector_db_path.mkdir(parents=True, exist_ok=True)
 

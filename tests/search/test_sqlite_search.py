@@ -7,7 +7,7 @@ from unittest.mock import patch, MagicMock
 import pytest
 
 from app.search.sqlite_search import search_cves_fts
-from app.core.db import rebuild_fts_index
+from app.core.db import initialize_database, rebuild_fts_index
 
 
 @pytest.fixture
@@ -99,3 +99,11 @@ def test_search_cves_fts_empty_query():
     """Test search with empty query raises ValueError."""
     with pytest.raises(ValueError, match="Query must not be empty"):
         search_cves_fts(query="   ")
+
+
+def test_initialize_database_does_not_rebuild_fts():
+    """Schema init should not rebuild FTS during application startup."""
+    with patch("app.core.db.rebuild_fts_index") as mock_rebuild:
+        initialize_database()
+
+    mock_rebuild.assert_not_called()

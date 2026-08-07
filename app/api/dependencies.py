@@ -1,5 +1,4 @@
 from typing import Callable, Any
-from chromadb.api.models.Collection import Collection
 
 from app.core.config import config, Config
 from app.retrieval.vector_store import get_vector_store as get_vs
@@ -18,7 +17,7 @@ def get_settings() -> Config:
     return config
 
 
-def get_vector_store() -> Collection:
+def get_vector_store() -> Any:
     """Provide the initialized ChromaDB vector store collection.
 
     Returns

@@ -38,9 +38,6 @@ def initialize_database() -> None:
             conn.executescript(f.read())
         conn.commit()
 
-    # Rebuild FTS index on init
-    rebuild_fts_index()
-
 
 def rebuild_fts_index() -> None:
     """Rebuild the FTS5 search index from existing tables."""
