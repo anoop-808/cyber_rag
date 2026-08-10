@@ -7,7 +7,7 @@ from typing import Any
 from app.ingestion.extractor import extract_cve_fields
 from app.ingestion.loader import load_json_dataset
 
-RAW_NVD_PATH = Path("storage/datasets/raw/nvd_cves.json")
+RAW_DIR = Path("storage/datasets/raw")
 PROCESSED_DIR = Path("storage/datasets/processed")
 PROCESSED_OUTPUT_PATH = PROCESSED_DIR / "processed_cves.json"
 
@@ -55,14 +55,30 @@ def save_processed_dataset(
 
 def main() -> None:
     """Load, process, and save the NVD CVE dataset."""
-    dataset = load_json_dataset(str(RAW_NVD_PATH))
-    vulnerabilities = dataset.get("vulnerabilities", [])
+    all_processed_cves = []
+    
+    # Process original dataset file and any yearly feed files
+    raw_files = list(RAW_DIR.glob("nvdcve-2.0-*.json.gz")) + list(RAW_DIR.glob("nvdcve-2.0-*.json"))
+    legacy_file = RAW_DIR / "nvd_cves.json"
+    if legacy_file.exists():
+        raw_files.append(legacy_file)
+        
+    if not raw_files:
+        print(f"No raw files found in {RAW_DIR}")
+        return
 
-    processed_cves = process_vulnerabilities(vulnerabilities)
-    save_processed_dataset(processed_cves, PROCESSED_OUTPUT_PATH)
+    for raw_file in raw_files:
+        print(f"Processing {raw_file}...")
+        dataset = load_json_dataset(str(raw_file))
+        vulnerabilities = dataset.get("vulnerabilities", [])
 
-    print(f"Number of raw CVEs loaded: {len(vulnerabilities)}")
-    print(f"Number of processed CVEs: {len(processed_cves)}")
+        processed_cves = process_vulnerabilities(vulnerabilities)
+        all_processed_cves.extend(processed_cves)
+        print(f"Loaded {len(vulnerabilities)} raw CVEs, processed {len(processed_cves)}.")
+
+    save_processed_dataset(all_processed_cves, PROCESSED_OUTPUT_PATH)
+
+    print(f"Total processed CVEs: {len(all_processed_cves)}")
     print(f"Output file path: {PROCESSED_OUTPUT_PATH}")
 
 

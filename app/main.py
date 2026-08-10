@@ -5,10 +5,7 @@ from contextlib import asynccontextmanager
 import logging
 
 from app.api.routes import router
-import os
 from app.core.db import initialize_database
-from app.ingestion.importer import import_cve_data
-from app.ingestion.loader import load_json_dataset
 
 logger = logging.getLogger(__name__)
 
@@ -21,18 +18,6 @@ async def lifespan(app: FastAPI):
     logger.info("Initializing database...")
     # Initialize database on startup
     initialize_database()
-
-    IMPORT_DATA_ON_STARTUP = (
-        os.getenv("IMPORT_DATA_ON_STARTUP", "false").lower() == "true"
-    )
-
-    if IMPORT_DATA_ON_STARTUP:
-        processed_path = "storage/datasets/processed/processed_cves.json"
-
-        if os.path.exists(processed_path):
-            logger.info(f"Importing dataset from {processed_path}")
-            dataset = load_json_dataset(processed_path)
-            import_cve_data(dataset)
 
     yield
 

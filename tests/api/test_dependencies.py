@@ -1,4 +1,5 @@
 import pytest
+import asyncio
 from unittest.mock import patch
 
 from app.api.dependencies import (
@@ -39,13 +40,11 @@ def test_get_retrieval_pipeline():
 
 def test_lifespan_lifecycle():
     """Test the application startup and shutdown lifecycle logging and initialization."""
-    from fastapi.testclient import TestClient
-    from app.main import app
+    from app.main import app, lifespan
 
-    with patch("app.main.initialize_database") as mock_init_db, \
-         patch("app.main.os.path.exists", return_value=False) as mock_exists:
+    with patch("app.main.initialize_database") as mock_init_db:
+        async def run_lifespan():
+            async with lifespan(app):
+                mock_init_db.assert_called_once()
 
-        # Using TestClient as a context manager triggers the lifespan events
-        with TestClient(app) as client:
-            mock_init_db.assert_called_once()
-            mock_exists.assert_not_called()
+        asyncio.run(run_lifespan())

@@ -1,5 +1,6 @@
 """JSON dataset loading utilities for CyberRAG ingestion."""
 
+import gzip
 import json
 from pathlib import Path
 from typing import Any
@@ -31,8 +32,12 @@ def load_json_dataset(file_path: str) -> Any:
         raise FileNotFoundError(f"JSON dataset file not found: {path}")
 
     try:
-        with path.open(encoding="utf-8") as json_file:
-            return json.load(json_file)
+        if path.suffix == ".gz":
+            with gzip.open(path, "rt", encoding="utf-8") as json_file:
+                return json.load(json_file)
+        else:
+            with path.open(encoding="utf-8") as json_file:
+                return json.load(json_file)
     except json.JSONDecodeError as exc:
         raise ValueError(
             f"Failed to parse JSON from {path}: "

@@ -36,3 +36,7 @@ storage/cache/
 build/
 dist/
 storage/database.sqlite
+
+# Generated NVD datasets
+storage/datasets/raw/nvdcve-2.0-*.json.gz
+storage/datasets/processed/processed_cves.json

@@ -116,3 +116,87 @@ def test_import_cve_missing_id():
 
         # Commit should still be called
         mock_conn.commit.assert_called_once()
+
+
+def test_import_cve_reuses_existing_cpe_uri(mock_db_connection):
+    """CPE URI collisions should reuse the existing CPE row."""
+    test_records = [
+        {
+            "id": "CVE-2024-0001",
+            "description": "First",
+            "cpes": [
+                {
+                    "id": "cpe-uuid-1",
+                    "uri": "cpe:2.3:a:vendor:product:1.0:*:*:*:*:*:*:*",
+                }
+            ],
+        },
+        {
+            "id": "CVE-2024-0002",
+            "description": "Second",
+            "cpes": [
+                {
+                    "id": "cpe-uuid-2",
+                    "uri": "cpe:2.3:a:vendor:product:1.0:*:*:*:*:*:*:*",
+                }
+            ],
+        },
+    ]
+
+    with patch("app.ingestion.importer.get_db_connection") as mock_get_db:
+        mock_ctx = MagicMock()
+        mock_ctx.__enter__.return_value = mock_db_connection
+        mock_get_db.return_value = mock_ctx
+
+        import_cve_data(test_records)
+
+    cursor = mock_db_connection.cursor()
+    cursor.execute("SELECT COUNT(*) FROM cpes")
+    assert cursor.fetchone()[0] == 1
+    cursor.execute("SELECT cve_id, cpe_id FROM cve_cpes ORDER BY cve_id")
+    assert [tuple(row) for row in cursor.fetchall()] == [
+        ("CVE-2024-0001", "cpe-uuid-1"),
+        ("CVE-2024-0002", "cpe-uuid-1"),
+    ]
+
+
+def test_import_cve_strict_raises_on_failure():
+    """Strict imports should fail instead of silently producing partial builds."""
+    test_records = [{"description": "Missing ID"}]
+
+    with patch("app.ingestion.importer.get_db_connection") as mock_get_db:
+        mock_conn = MagicMock()
+        mock_ctx = MagicMock()
+        mock_ctx.__enter__.return_value = mock_conn
+        mock_get_db.return_value = mock_ctx
+
+        with pytest.raises(RuntimeError, match="Failed to import 1 CVE records"):
+            import_cve_data(test_records, strict=True)
+
+def test_import_cve_idempotency(mock_db_connection):
+    """Importing the same CVE twice should not create duplicates, but replace the existing."""
+    test_records = [
+        {
+            "id": "CVE-2024-0001",
+            "description": "Original",
+        }
+    ]
+
+    with patch("app.ingestion.importer.get_db_connection") as mock_get_db:
+        mock_ctx = MagicMock()
+        mock_ctx.__enter__.return_value = mock_db_connection
+        mock_get_db.return_value = mock_ctx
+
+        # Import first time
+        import_cve_data(test_records)
+        
+        # Modify description and import again
+        test_records[0]["description"] = "Updated"
+        import_cve_data(test_records)
+
+    cursor = mock_db_connection.cursor()
+    cursor.execute("SELECT COUNT(*) FROM cves")
+    assert cursor.fetchone()[0] == 1
+    
+    cursor.execute("SELECT description FROM cves WHERE id = 'CVE-2024-0001'")
+    assert cursor.fetchone()[0] == "Updated"

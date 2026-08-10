@@ -9,14 +9,24 @@ from app.core.db import get_db_connection, rebuild_fts_index
 logger = logging.getLogger(__name__)
 
 
-def import_cve_data(cve_records: list[dict[str, Any]]) -> None:
+def import_cve_data(
+    cve_records: list[dict[str, Any]],
+    rebuild_fts: bool = True,
+    strict: bool = False,
+) -> None:
     """Import a list of cleaned CVE records into the SQLite database.
 
     Parameters
     ----------
     cve_records : list of dict
         A list of cleaned CVE dictionaries containing fields to insert.
+    rebuild_fts : bool
+        Whether to rebuild the FTS index after import.
+    strict : bool
+        Whether to raise an error if any CVE cannot be imported.
     """
+    failed_count = 0
+
     with get_db_connection() as conn:
         cursor = conn.cursor()
 
@@ -26,15 +36,19 @@ def import_cve_data(cve_records: list[dict[str, Any]]) -> None:
             try:
                 _insert_single_cve(cursor, cve)
             except Exception as e:
+                failed_count += 1
                 logger.error(f"Failed to import CVE {cve.get('id', 'UNKNOWN')}: {e}")
 
         conn.commit()
 
-    # Rebuild FTS index after importing data
-    try:
-        rebuild_fts_index()
-    except Exception as e:
-        logger.error(f"Failed to rebuild FTS index: {e}")
+    if strict and failed_count:
+        raise RuntimeError(f"Failed to import {failed_count} CVE records.")
+
+    if rebuild_fts:
+        try:
+            rebuild_fts_index()
+        except Exception as e:
+            logger.error(f"Failed to rebuild FTS index: {e}")
 
 
 def _insert_single_cve(cursor: Any, cve: dict[str, Any]) -> None:
@@ -110,6 +124,9 @@ def _insert_single_cve(cursor: Any, cve: dict[str, Any]) -> None:
                 cpe.get("version")
             )
         )
+
+        cursor.execute("SELECT id FROM cpes WHERE uri = ?", (uri,))
+        cpe_id = cursor.fetchone()["id"]
 
         cursor.execute(
             """

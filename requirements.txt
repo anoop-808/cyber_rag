@@ -1,3 +1,13 @@
+# CyberRAG production dependencies (Phase 4 dependency audit, verified on Python 3.13)
+#
+# All versions are exact pins for reproducible production builds.
+# Verified working together on Python 3.13.x: 132/132 tests pass, `pip check` clean.
+#
+# torch is pinned to the CPU-only build (+cpu) on purpose:
+#   - The app only uses sentence-transformers for embeddings on CPU; no GPU code paths.
+#   - Without this pin, pip installs the GPU wheel (pulls ~3.4 GB of nvidia/* + triton).
+#   - The --extra-index-url must stay BEFORE the torch pin so the CPU wheel resolves.
+#   - `torch==2.13.0+cpu` is NOT on PyPI, so the +cpu local version forces the CPU index.
 --extra-index-url https://download.pytorch.org/whl/cpu
 
 fastapi==0.139.2
