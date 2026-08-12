@@ -18,3 +18,4 @@ tenacity==9.1.4
 chromadb==1.5.9
 sentence-transformers==5.6.0
 torch==2.13.0+cpu
+libsql-client==0.3.1
