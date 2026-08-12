@@ -20,6 +20,11 @@ def main() -> None:
     """Initialize SQLite, incrementally import yearly CVE feeds, rebuild FTS, and exit."""
     logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
     
+    import os
+    if os.environ.get("TURSO_DATABASE_URL"):
+        logger.info("Turso configuration detected. Skipping NVD dataset import.")
+        return
+
     initialize_database()
     
     raw_files = sorted(list(RAW_DIR.glob("nvdcve-2.0-*.json.gz")) + list(RAW_DIR.glob("nvdcve-2.0-*.json")))

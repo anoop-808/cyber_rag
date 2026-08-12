@@ -4,11 +4,15 @@ from pathlib import Path
 from unittest.mock import Mock, call
 
 import scripts.import_nvd as import_nvd
+import os
 
 
 def test_import_nvd_runs_build_phase_steps(monkeypatch):
     """The build script should incrementally load raw data in batches, import it, rebuild FTS, and exit."""
     
+    if "TURSO_DATABASE_URL" in os.environ:
+        monkeypatch.delenv("TURSO_DATABASE_URL")
+
     # Mock RAW_DIR glob to return a normal feed and the legacy file
     mock_raw_dir = Mock()
     file1 = Mock(name="file1")
